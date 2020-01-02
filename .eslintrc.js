@@ -24,6 +24,8 @@ module.exports = {
 		"no-undef": "off",
 		"no-unused-vars": "off",
         "camelcase": "off",
-        "no-unused-vars": ["error", {"argsIgnorePattern": "next"}]
+		"no-unused-vars": ["error", {"argsIgnorePattern": "next"}],
+		'no-tabs': 'off',
+		'indent': 'off'
     }
 };
