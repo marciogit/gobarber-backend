@@ -8,6 +8,9 @@ import File from '../models/File';
 import Appointment from '../models/Appointment';
 import Notification from '../schema/Notification';
 
+import CancellationMail from '../jobs/CancellationMail';
+import Queue from '../../lib/Queue';
+
 class AppointmentController {
 	async index(req, res) {
 		const { page } = req.query;
@@ -105,7 +108,20 @@ class AppointmentController {
 	}
 
 	async delete(req, res) {
-		const appointment = await Appointment.findByPk(req.params.id);
+		const appointment = await Appointment.findByPk(req.params.id, {
+			include: [
+				{
+					model: User,
+					as: 'provider',
+					attributes: ['name', 'email'],
+				},
+				{
+					model: User,
+					as: 'user',
+					attributes: ['name'],
+				},
+			],
+		});
 
 		// Checando se o usário logado é o dono do appointment que ele deseja cancelar.
 		if (appointment.user_id !== req.userId) {
@@ -122,6 +138,10 @@ class AppointmentController {
 		appointment.canceled_at = new Date();
 
 		await appointment.save();
+
+		await Queue.add(CancellationMail.key, {
+			appointment,
+		});
 
 		return res.json(appointment);
 	}
